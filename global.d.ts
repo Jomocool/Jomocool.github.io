@@ -265,23 +265,59 @@ interface Hotjar {
   snippetVersion?: number;
 }
 
+interface LocalArticle {
+  /**
+   * Article title
+   */
+  title: string;
+
+  /**
+   * Short summary shown on the card
+   */
+  description?: string;
+
+  /**
+   * Filename under public/articles/
+   */
+  file: string;
+
+  /**
+   * Publish date, YYYY-MM-DD
+   */
+  publishedAt?: string;
+
+  /**
+   * Tags shown on the card
+   */
+  categories?: Array<string>;
+
+  /**
+   * Optional thumbnail image url
+   */
+  thumbnail?: string;
+}
+
 interface Blog {
   /**
-   * medium | dev
+   * medium | dev | local
    */
   source?: string;
 
   /**
-   * Username
+   * Username (medium / dev)
    */
   username?: string;
 
   /**
-   * How many articles to display
-   *
-   * Max is 10
+   * Optional cap for medium / dev feeds. Local articles ignore this
+   * and always show the full list.
    */
   limit?: number;
+
+  /**
+   * Local markdown articles (source: 'local')
+   */
+  articles?: Array<LocalArticle>;
 }
 
 interface ThemeConfig {

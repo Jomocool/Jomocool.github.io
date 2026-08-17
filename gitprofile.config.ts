@@ -80,11 +80,51 @@ const CONFIG = {
     },
   ],
   publications: [],
-  // Display articles from your medium or dev account. (Optional)
+  // Display articles from medium, dev, or local markdown under public/articles/.
   blog: {
-    source: '', // medium | dev
-    username: '', // to hide blog section, keep it empty
-    limit: 5, // How many articles to display. Max is 10.
+    source: 'local', // medium | dev | local
+    username: '', // required for medium / dev; unused for local
+    articles: [
+      {
+        title: '第一阶段：概念入门 — 学习笔记',
+        description:
+          '从《交易系统：更新与跨越》出发，梳理 OMS 定义、分层架构与核心设计原则。',
+        file: '01-概念入门-学习笔记.md',
+        publishedAt: '2026-08-11',
+        categories: ['OMS', '交易系统'],
+      },
+      {
+        title: '第二阶段：架构理解 — 学习笔记',
+        description:
+          '对照华泰通信框架、XSTEP 与 FIX，理解券商侧交易系统的接入与订单链路。',
+        file: '02-架构理解-学习笔记.md',
+        publishedAt: '2026-08-12',
+        categories: ['OMS', '架构'],
+      },
+      {
+        title: '第三阶段：代码实战 — 学习笔记',
+        description: '拆解交易所级撮合引擎与券商级交易平台，对照两种典型实现。',
+        file: '03-代码实战-学习笔记.md',
+        publishedAt: '2026-08-12',
+        categories: ['OMS', '源码'],
+      },
+      {
+        title: '第四阶段：自建设计 — 学习笔记',
+        description:
+          '用 C++17 实现简化版 OMS：下单、风控、撮合、成交与持仓更新。',
+        file: '04-自建设计-学习笔记.md',
+        publishedAt: '2026-08-12',
+        categories: ['OMS', 'C++'],
+      },
+      {
+        title: '完整交易系统建设路线图',
+        description:
+          '从 OMS 扩展到网关、风控、撮合、行情与清算，规划可讲解的完整闭环。',
+        file: '05-完整交易系统-路线图.md',
+        publishedAt: '2026-08-14',
+        categories: ['OMS', '路线图'],
+      },
+    ],
   },
   googleAnalytics: {
     id: '', // GA3 tracking id/GA4 tag id UA-XXXXXXXXX-X | G-XXXXXXXXXX

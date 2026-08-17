@@ -4,7 +4,7 @@ import { PiNewspaper } from 'react-icons/pi';
 import { getDevPost, getMediumPost } from '@arifszn/blog-js';
 import { formatDistance } from 'date-fns';
 import { SanitizedBlog } from '../../interfaces/sanitized-config';
-import { ga, skeleton } from '../../utils';
+import { ga, getArticleHash, skeleton } from '../../utils';
 import { Article } from '../../interfaces/article';
 
 const BlogCard = ({
@@ -31,12 +31,25 @@ const BlogCard = ({
       }).then((res) => {
         setArticles(res);
       });
+    } else if (blog.source === 'local') {
+      setArticles(
+        blog.articles.map((item) => ({
+          title: item.title,
+          thumbnail: item.thumbnail,
+          link: getArticleHash(item.file),
+          publishedAt: item.publishedAt
+            ? new Date(`${item.publishedAt}T00:00:00`)
+            : new Date(),
+          description: item.description,
+          categories: item.categories,
+        })),
+      );
     }
-  }, [blog.source, blog.username]);
+  }, [blog]);
 
   const renderSkeleton = () => {
     const array = [];
-    for (let index = 0; index < blog.limit; index++) {
+    for (let index = 0; index < 3; index++) {
       array.push(
         <div className="card shadow-md card-sm bg-base-100" key={index}>
           <div className="p-8 h-full w-full">
@@ -93,14 +106,12 @@ const BlogCard = ({
 
   const renderArticles = () => {
     return articles && articles.length ? (
-      articles.slice(0, blog.limit).map((article, index) => (
+      articles.map((article, index) => (
         <a
           className="card shadow-md card-sm bg-base-100 cursor-pointer"
           key={index}
           href={article.link}
           onClick={(e) => {
-            e.preventDefault();
-
             try {
               if (googleAnalyticsId) {
                 ga.event('Click Blog Post', {
@@ -111,6 +122,11 @@ const BlogCard = ({
               console.error(error);
             }
 
+            if (article.link.startsWith('#')) {
+              return;
+            }
+
+            e.preventDefault();
             window?.open(article.link, '_blank');
           }}
         >
@@ -118,15 +134,21 @@ const BlogCard = ({
             <div className="flex items-center flex-col md:flex-row">
               <div className="avatar mb-5 md:mb-0 opacity-90">
                 <div className="w-24 h-24 mask mask-squircle">
-                  <LazyImage
-                    src={article.thumbnail}
-                    alt={'thumbnail'}
-                    placeholder={skeleton({
-                      widthCls: 'w-full',
-                      heightCls: 'h-full',
-                      shape: '',
-                    })}
-                  />
+                  {article.thumbnail ? (
+                    <LazyImage
+                      src={article.thumbnail}
+                      alt={'thumbnail'}
+                      placeholder={skeleton({
+                        widthCls: 'w-full',
+                        heightCls: 'h-full',
+                        shape: '',
+                      })}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-full h-full bg-base-300">
+                      <PiNewspaper className="text-3xl opacity-50" />
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="w-full">

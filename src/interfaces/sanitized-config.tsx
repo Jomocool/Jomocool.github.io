@@ -109,11 +109,21 @@ export interface SanitizedHotjar {
   snippetVersion: number;
 }
 
+export interface SanitizedLocalArticle {
+  title: string;
+  description: string;
+  file: string;
+  publishedAt: string;
+  categories: Array<string>;
+  thumbnail: string;
+}
+
 export interface SanitizedBlog {
   display: boolean;
   source: string;
   username: string;
   limit: number;
+  articles: Array<SanitizedLocalArticle>;
 }
 
 export interface SanitizedThemeConfig {

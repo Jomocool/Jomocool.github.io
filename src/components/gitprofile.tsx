@@ -9,7 +9,12 @@ import {
   setTooManyRequestError,
 } from '../constants/errors';
 import '../assets/index.css';
-import { getInitialTheme, getSanitizedConfig, setupHotjar } from '../utils';
+import {
+  getArticleFileFromHash,
+  getInitialTheme,
+  getSanitizedConfig,
+  setupHotjar,
+} from '../utils';
 import { SanitizedConfig } from '../interfaces/sanitized-config';
 import ErrorPage from './error-page';
 import { DEFAULT_THEMES } from '../constants/default-themes';
@@ -28,6 +33,7 @@ import ExternalProjectCard from './external-project-card';
 import BlogCard from './blog-card';
 import Footer from './footer';
 import PublicationCard from './publication-card';
+import ArticlePage from './article-page';
 
 /**
  * Renders the GitProfile component.
@@ -44,6 +50,9 @@ const GitProfile = ({ config }: { config: Config }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [githubProjects, setGithubProjects] = useState<GithubProject[]>([]);
+  const [articleFile, setArticleFile] = useState<string | null>(
+    getArticleFileFromHash(window.location.hash),
+  );
 
   const getGithubProjects = useCallback(
     async (publicRepoCount: number): Promise<GithubProject[]> => {
@@ -143,6 +152,15 @@ const GitProfile = ({ config }: { config: Config }) => {
     theme && document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
+  useEffect(() => {
+    const onHashChange = () => {
+      setArticleFile(getArticleFileFromHash(window.location.hash));
+    };
+
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
   const handleError = (error: AxiosError | Error): void => {
     console.error('Error:', error);
 
@@ -177,6 +195,11 @@ const GitProfile = ({ config }: { config: Config }) => {
     }
   };
 
+  const selectedArticle =
+    articleFile && sanitizedConfig.blog
+      ? sanitizedConfig.blog.articles.find((item) => item.file === articleFile)
+      : undefined;
+
   return (
     <div className="fade-in h-screen">
       {error ? (
@@ -184,6 +207,13 @@ const GitProfile = ({ config }: { config: Config }) => {
           status={error.status}
           title={error.title}
           subTitle={error.subTitle}
+        />
+      ) : selectedArticle ? (
+        <ArticlePage
+          article={selectedArticle}
+          onBack={() => {
+            window.location.hash = '';
+          }}
         />
       ) : (
         <>

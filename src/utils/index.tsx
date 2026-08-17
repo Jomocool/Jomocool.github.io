@@ -116,7 +116,21 @@ export const getSanitizedConfig = (
         username: config?.blog?.username || '',
         source: config?.blog?.source || 'dev',
         limit: config?.blog?.limit || 5,
-        display: !!config?.blog?.username && !!config?.blog?.source,
+        articles:
+          config?.blog?.articles
+            ?.filter((item) => item.title && item.file)
+            .map((item) => ({
+              title: item.title,
+              description: item.description || '',
+              file: item.file,
+              publishedAt: item.publishedAt || '',
+              categories: item.categories || [],
+              thumbnail: item.thumbnail || '',
+            })) || [],
+        display:
+          config?.blog?.source === 'local'
+            ? (config?.blog?.articles?.length || 0) > 0
+            : !!config?.blog?.username && !!config?.blog?.source,
       },
       themeConfig: {
         defaultTheme: config?.themeConfig?.defaultTheme || DEFAULT_THEMES[0],
@@ -203,6 +217,30 @@ export const ga = {
       console.error(error);
     }
   },
+};
+
+export const ARTICLE_HASH_PREFIX = '#/article/';
+
+export const getArticleFileFromHash = (hash: string): string | null => {
+  if (!hash.startsWith(ARTICLE_HASH_PREFIX)) {
+    return null;
+  }
+
+  try {
+    return decodeURIComponent(hash.slice(ARTICLE_HASH_PREFIX.length));
+  } catch {
+    return null;
+  }
+};
+
+export const getArticleHash = (file: string): string => {
+  return `${ARTICLE_HASH_PREFIX}${encodeURIComponent(file)}`;
+};
+
+export const getArticleAssetUrl = (file: string): string => {
+  const base = import.meta.env.BASE_URL || '/';
+  const prefix = base.endsWith('/') ? base : `${base}/`;
+  return `${prefix}articles/${encodeURIComponent(file)}`;
 };
 
 export const getLanguageColor = (language: string): string => {
