@@ -1,6 +1,11 @@
 import React from 'react';
 import { hotjar } from 'react-hotjar';
-import { LOCAL_STORAGE_KEY_NAME } from '../constants';
+import {
+  LOCAL_STORAGE_KEY_NAME,
+  PROFILE_CACHE_KEY,
+  PROFILE_CACHE_TTL_MS,
+} from '../constants';
+import { Profile } from '../interfaces/profile';
 
 import { DEFAULT_THEMES } from '../constants/default-themes';
 import colors from '../data/colors.json';
@@ -241,6 +246,87 @@ export const getArticleAssetUrl = (file: string): string => {
   const base = import.meta.env.BASE_URL || '/';
   const prefix = base.endsWith('/') ? base : `${base}/`;
   return `${prefix}articles/${encodeURIComponent(file)}`;
+};
+
+type CachedProfile = {
+  username: string;
+  profile: Profile;
+  savedAt: number;
+};
+
+export const getFallbackProfile = (username: string): Profile => {
+  return {
+    avatar: `https://github.com/${username}.png`,
+    name: username,
+    bio: '',
+    location: '',
+    company: '',
+  };
+};
+
+const readProfileCache = (username: string): CachedProfile | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const raw = localStorage.getItem(PROFILE_CACHE_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw) as CachedProfile;
+    if (parsed.username !== username || !parsed.profile) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+export const readCachedProfile = (username: string): Profile | null => {
+  return readProfileCache(username)?.profile || null;
+};
+
+export const isCachedProfileFresh = (username: string): boolean => {
+  const cached = readProfileCache(username);
+  if (!cached) {
+    return false;
+  }
+
+  return Date.now() - cached.savedAt < PROFILE_CACHE_TTL_MS;
+};
+
+export const writeCachedProfile = (
+  username: string,
+  profile: Profile,
+): void => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const payload: CachedProfile = {
+    username,
+    profile,
+    savedAt: Date.now(),
+  };
+
+  localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(payload));
+};
+
+export const getGithubApiHeaders = (): Record<string, string> => {
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github.v3+json',
+  };
+  const token = import.meta.env.VITE_GITHUB_TOKEN;
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return headers;
 };
 
 export const getLanguageColor = (language: string): string => {

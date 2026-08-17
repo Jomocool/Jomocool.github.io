@@ -1,5 +1,9 @@
 export const LOCAL_STORAGE_KEY_NAME = 'gitprofile-theme';
 
+export const PROFILE_CACHE_KEY = 'gitprofile-github-profile';
+
+export const PROFILE_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
+
 export const BG_COLOR = 'bg-base-300';
 
 export const FALLBACK_IMAGE =

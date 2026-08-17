@@ -1,19 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
-import axios, { AxiosError } from 'axios';
-import { formatDistance } from 'date-fns';
-import {
-  CustomError,
-  GENERIC_ERROR,
-  INVALID_CONFIG_ERROR,
-  INVALID_GITHUB_USERNAME_ERROR,
-  setTooManyRequestError,
-} from '../constants/errors';
+import axios from 'axios';
+import { CustomError, INVALID_CONFIG_ERROR } from '../constants/errors';
 import '../assets/index.css';
 import {
   getArticleFileFromHash,
+  getFallbackProfile,
+  getGithubApiHeaders,
   getInitialTheme,
   getSanitizedConfig,
+  isCachedProfileFresh,
+  readCachedProfile,
   setupHotjar,
+  writeCachedProfile,
 } from '../utils';
 import { SanitizedConfig } from '../interfaces/sanitized-config';
 import ErrorPage from './error-page';
@@ -48,7 +46,14 @@ const GitProfile = ({ config }: { config: Config }) => {
   const [theme, setTheme] = useState<string>(DEFAULT_THEMES[0]);
   const [error, setError] = useState<CustomError | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(() => {
+    const username = sanitizedConfig.github?.username;
+    if (!username) {
+      return null;
+    }
+
+    return readCachedProfile(username) || getFallbackProfile(username);
+  });
   const [githubProjects, setGithubProjects] = useState<GithubProject[]>([]);
   const [articleFile, setArticleFile] = useState<string | null>(
     getArticleFileFromHash(window.location.hash),
@@ -70,7 +75,7 @@ const GitProfile = ({ config }: { config: Config }) => {
         const url = `https://api.github.com/search/repositories?q=${query}&sort=${sanitizedConfig.projects.github.automatic.sortBy}&per_page=${sanitizedConfig.projects.github.automatic.limit}&type=Repositories`;
 
         const repoResponse = await axios.get(url, {
-          headers: { 'Content-Type': 'application/vnd.github.v3+json' },
+          headers: getGithubApiHeaders(),
         });
         const repoData = repoResponse.data;
 
@@ -86,7 +91,7 @@ const GitProfile = ({ config }: { config: Config }) => {
         const url = `https://api.github.com/search/repositories?q=${repos}+fork:true&type=Repositories`;
 
         const repoResponse = await axios.get(url, {
-          headers: { 'Content-Type': 'application/vnd.github.v3+json' },
+          headers: getGithubApiHeaders(),
         });
         const repoData = repoResponse.data;
 
@@ -105,29 +110,43 @@ const GitProfile = ({ config }: { config: Config }) => {
   );
 
   const loadData = useCallback(async () => {
+    const username = sanitizedConfig.github.username;
+    const cachedProfile = readCachedProfile(username);
+    const fallbackProfile = getFallbackProfile(username);
+
+    setProfile(cachedProfile || fallbackProfile);
+
+    if (cachedProfile && isCachedProfileFresh(username)) {
+      return;
+    }
+
     try {
-      setLoading(true);
+      setLoading(!cachedProfile);
 
       const response = await axios.get(
-        `https://api.github.com/users/${sanitizedConfig.github.username}`,
+        `https://api.github.com/users/${username}`,
+        { headers: getGithubApiHeaders() },
       );
       const data = response.data;
-
-      setProfile({
+      const nextProfile: Profile = {
         avatar: data.avatar_url,
-        name: data.name || ' ',
+        name: data.name || username,
         bio: data.bio || '',
         location: data.location || '',
         company: data.company || '',
-      });
+      };
+
+      setProfile(nextProfile);
+      writeCachedProfile(username, nextProfile);
 
       if (!sanitizedConfig.projects.github.display) {
         return;
       }
 
       setGithubProjects(await getGithubProjects(data.public_repos));
-    } catch (error) {
-      handleError(error as AxiosError | Error);
+    } catch (requestError) {
+      console.error('GitHub profile request failed:', requestError);
+      setProfile(cachedProfile || fallbackProfile);
     } finally {
       setLoading(false);
     }
@@ -160,40 +179,6 @@ const GitProfile = ({ config }: { config: Config }) => {
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
-
-  const handleError = (error: AxiosError | Error): void => {
-    console.error('Error:', error);
-
-    if (error instanceof AxiosError) {
-      try {
-        const reset = formatDistance(
-          new Date(error.response?.headers?.['x-ratelimit-reset'] * 1000),
-          new Date(),
-          { addSuffix: true },
-        );
-
-        if (typeof error.response?.status === 'number') {
-          switch (error.response.status) {
-            case 403:
-              setError(setTooManyRequestError(reset));
-              break;
-            case 404:
-              setError(INVALID_GITHUB_USERNAME_ERROR);
-              break;
-            default:
-              setError(GENERIC_ERROR);
-              break;
-          }
-        } else {
-          setError(GENERIC_ERROR);
-        }
-      } catch (innerError) {
-        setError(GENERIC_ERROR);
-      }
-    } else {
-      setError(GENERIC_ERROR);
-    }
-  };
 
   const selectedArticle =
     articleFile && sanitizedConfig.blog
