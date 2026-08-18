@@ -45,11 +45,11 @@ const CONFIG = {
   skills: ['C++', 'CMake', 'Git', 'Docker', 'CI/CD'],
   experiences: [
     {
-      company: '非凸科技',
-      position: '量化开发实习生',
-      from: '2024-07',
-      to: '2025-04',
-      companyLink: 'https://ft.tech/',
+      company: '辉立信息科技有限公司',
+      position: 'C++开发工程师',
+      from: '2026-07',
+      to: '至今',
+      companyLink: 'http://www.phillip-infotech.com/',
     },
     {
       company: '非凸科技',
@@ -59,11 +59,11 @@ const CONFIG = {
       companyLink: 'https://ft.tech/',
     },
     {
-      company: '辉立信息科技有限公司',
-      position: 'C++开发工程师',
-      from: '2026-07',
-      to: '至今',
-      companyLink: 'http://www.phillip-infotech.com/',
+      company: '非凸科技',
+      position: '量化开发实习生',
+      from: '2024-07',
+      to: '2025-04',
+      companyLink: 'https://ft.tech/',
     },
   ],
   certifications: [
