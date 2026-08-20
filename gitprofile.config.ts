@@ -124,6 +124,13 @@ const CONFIG = {
         publishedAt: '2026-08-14',
         categories: ['OMS', '路线图'],
       },
+      {
+        title: '第五阶段：撮合引擎生产化 - 学习笔记',
+        description: '在 C++17 简化版 OMS 的基础上，设计撮合引擎的生产化方案。',
+        file: '06-撮合引擎生产化-学习笔记.md',
+        publishedAt: '2026-08-20',
+        categories: ['OMS', 'C++'],
+      },
     ],
   },
   googleAnalytics: {
