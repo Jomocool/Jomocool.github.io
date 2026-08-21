@@ -131,6 +131,14 @@ const CONFIG = {
         publishedAt: '2026-08-20',
         categories: ['OMS', 'C++'],
       },
+      {
+        title: '第六阶段：网络层 - 学习笔记',
+        description:
+          'C++17，Asio + protobuf，把阶段 5 的撮合引擎暴露为 TCP 服务',
+        file: '07-网络层-学习笔记.md',
+        publishedAt: '2026-08-21',
+        categories: ['OMS', 'C++'],
+      },
     ],
   },
   googleAnalytics: {
