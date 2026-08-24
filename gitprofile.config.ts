@@ -139,6 +139,13 @@ const CONFIG = {
         publishedAt: '2026-08-21',
         categories: ['OMS', 'C++'],
       },
+      {
+        title: '第七阶段：fix网关 - 学习笔记',
+        description: 'C++17，手写 FIX 编解码 + 会话层 + 应用层网关',
+        file: '08-fix网关-学习笔记.md',
+        publishedAt: '2026-08-22',
+        categories: ['OMS', 'C++'],
+      },
     ],
   },
   googleAnalytics: {
