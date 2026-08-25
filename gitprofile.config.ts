@@ -147,7 +147,7 @@ const CONFIG = {
         categories: ['OMS', 'C++'],
       },
       {
-        title: '第八阶段：fix网关 - 学习笔记',
+        title: '第八阶段：账户资金模块 - 学习笔记',
         description: 'C++17，账户资金 + 柜台核心',
         file: '09-账户资金模块-学习笔记.md',
         publishedAt: '2026-08-25',
