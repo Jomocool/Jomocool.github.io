@@ -153,6 +153,13 @@ const CONFIG = {
         publishedAt: '2026-08-25',
         categories: ['OMS', 'C++'],
       },
+      {
+        title: '第九阶段：分布式改造 - 学习笔记',
+        description: 'C++17，librdkafka + 事件驱动微服务雏形',
+        file: '10-分布式改造-学习笔记.md',
+        publishedAt: '2026-08-25',
+        categories: ['OMS', 'C++'],
+      },
     ],
   },
   googleAnalytics: {
