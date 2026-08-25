@@ -160,6 +160,13 @@ const CONFIG = {
         publishedAt: '2026-08-25',
         categories: ['OMS', 'C++'],
       },
+      {
+        title: '第十阶段：风控系统深化 - 学习笔记',
+        description: 'C++17，可插拔风控规则引擎 + 三层风控',
+        file: '11-风控系统深化-学习笔记.md',
+        publishedAt: '2026-08-25',
+        categories: ['OMS', 'C++'],
+      },
     ],
   },
   googleAnalytics: {
