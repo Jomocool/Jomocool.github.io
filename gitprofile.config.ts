@@ -174,6 +174,13 @@ const CONFIG = {
         publishedAt: '2026-08-31',
         categories: ['OMS', 'C++'],
       },
+      {
+        title: '第十二阶段：清算对账 - 学习笔记',
+        description: 'C++17，对账 + K 线聚合 + 日终清算',
+        file: '13-清算对账-学习笔记.md',
+        publishedAt: '2026-08-31',
+        categories: ['OMS', 'C++'],
+      },
     ],
   },
   googleAnalytics: {
