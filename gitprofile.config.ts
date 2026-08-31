@@ -181,6 +181,13 @@ const CONFIG = {
         publishedAt: '2026-08-31',
         categories: ['OMS', 'C++'],
       },
+      {
+        title: '第十三阶段：端到端模拟柜台 - 学习笔记',
+        description: 'C++17，柜台门面 + 模拟行情 + 可观测性',
+        file: '14-端到端模拟柜台-学习笔记.md',
+        publishedAt: '2026-08-31',
+        categories: ['OMS', 'C++'],
+      },
     ],
   },
   googleAnalytics: {
