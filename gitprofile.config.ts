@@ -167,6 +167,13 @@ const CONFIG = {
         publishedAt: '2026-08-25',
         categories: ['OMS', 'C++'],
       },
+      {
+        title: '第十一阶段：EMS算法交易 - 学习笔记',
+        description: 'C++17，父子订单拆分 + TWAP/VWAP 算法',
+        file: '12-EMS算法交易-学习笔记.md',
+        publishedAt: '2026-08-31',
+        categories: ['OMS', 'C++'],
+      },
     ],
   },
   googleAnalytics: {
