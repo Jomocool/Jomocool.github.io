@@ -76,3 +76,329 @@ VWAP 的核心：成交量大的时段多执行（开盘/收盘），小的时�
 - 对账：内部对账 + 与"交易所"对账
 - 日终清算：批量任务、事务边界
 - 历史数据：成交历史、行情 K 线
+
+---
+
+## 代码附录
+
+> 完整源码见项目目录 `ems/`，此处附核心文件。
+
+### `ems/CMakeLists.txt`
+
+```cmake
+cmake_minimum_required(VERSION 3.16)
+project(ems VERSION 0.11.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(ME_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../matching-engine)
+
+add_library(ems_core STATIC src/ems_engine.cpp)
+target_include_directories(ems_core PUBLIC include ${ME_DIR}/include)
+target_compile_options(ems_core PRIVATE -Wall -Wextra -Wpedantic)
+
+add_executable(ems-demo src/main.cpp)
+target_link_libraries(ems-demo PRIVATE ems_core)
+```
+
+### `ems/include/ems_engine.hpp`
+
+```cpp
+#pragma once
+
+#include "me/types.hpp"
+
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+namespace ems
+{
+    using me::OrderId;
+    using me::OrderState;
+    using me::Price;
+    using me::Quantity;
+    using me::Side;
+    using Amount = int64_t;
+
+    enum class Algorithm
+    {
+        TWAP = 0,
+        VWAP = 1
+    };
+
+    // 子单（父单拆分出的切片）
+    struct ChildOrder
+    {
+        OrderId id = 0;
+        Quantity qty = 0;
+        Quantity filledQty = 0;
+        OrderState state = OrderState::NEW;
+    };
+
+    // 父单（算法单）
+    struct ParentOrder
+    {
+        OrderId id = 0;
+        std::string userId;
+        std::string symbol;
+        Side side = Side::BUY;
+        Quantity totalQty = 0;
+        Quantity filledQty = 0;
+        Amount totalCost = 0; // 成交金额累计（算 AvgPx 用）
+        OrderState state = OrderState::NEW;
+        Algorithm algo = Algorithm::TWAP;
+        int totalSlices = 0;
+        int sentSlices = 0;
+        std::vector<ChildOrder> children;
+
+        Price avgPx() const { return filledQty == 0 ? 0 : totalCost / filledQty; }
+    };
+
+    // EMS 引擎：父单拆分 + 状态联动
+    class EmsEngine
+    {
+    public:
+        std::shared_ptr<ParentOrder> createParent(const std::string &userId, const std::string &symbol, Side side, Quantity totalQty, Algorithm algo, int slices);
+
+        // 拆出下一个子单；已拆完返回 nullptr
+        std::shared_ptr<ChildOrder> nextSlice(OrderId parentId);
+
+        // 子单成交回报(qty股，price价)
+        void onChildFill(OrderId parentId, OrderId childId, Quantity qty, Price price);
+
+        // 撤父单：撤所有未完成子单，返回回收的未成交量
+        Quantity cancelParent(OrderId parentId);
+
+        std::shared_ptr<ParentOrder> parent(OrderId id) const;
+
+    private:
+        std::unordered_map<OrderId, std::shared_ptr<ParentOrder>> parents_;
+        OrderId nextParentId_ = 1;
+        OrderId nextChildId_ = 1;
+    };
+} // namespace ems```
+
+### `ems/src/ems_engine.cpp`
+
+```cpp
+#include "ems_engine.hpp"
+
+namespace
+{
+    // 简化的 U 型成交量曲线：5 片固定权重（和 100），其余片数退回均分
+    int vwapWeight(int i, int n)
+    {
+        static const int w[5] = {30, 15, 10, 15, 30};
+        return (n == 5) ? w[i] : 100 / n;
+    }
+}
+
+namespace ems
+{
+    std::shared_ptr<ParentOrder> EmsEngine::createParent(const std::string &userId, const std::string &symbol, Side side, Quantity totalQty, Algorithm algo, int slices)
+    {
+        if (slices <= 0 || totalQty <= 0)
+            return nullptr;
+
+        auto p = std::make_shared<ParentOrder>();
+        p->id = nextParentId_++;
+        p->userId = userId;
+        p->symbol = symbol;
+        p->side = side;
+        p->totalQty = totalQty;
+        p->algo = algo;
+        p->totalSlices = slices;
+
+        // 预拆分
+        if (algo == Algorithm::TWAP)
+        {
+            Quantity base = totalQty / slices;
+            Quantity rem = totalQty % slices;
+            for (int i = 0; i < slices; ++i)
+            {
+                ChildOrder c;
+                c.id = nextChildId_++;
+                c.qty = base + (i < rem ? 1 : 0);
+                p->children.push_back(c);
+            }
+        }
+        else // VWAP：按成交量曲线加权
+        {
+            Quantity assigned = 0;
+            for (int i = 0; i < slices; ++i)
+            {
+                ChildOrder c;
+                c.id = nextChildId_++;
+                c.qty = totalQty * vwapWeight(i, slices) / 100;
+                p->children.push_back(c);
+                assigned += c.qty;
+            }
+            p->children[0].qty += (totalQty - assigned); // 舍入余数
+        }
+
+        parents_[p->id] = p;
+        return p;
+    }
+
+    std::shared_ptr<ChildOrder> EmsEngine::nextSlice(OrderId parentId)
+    {
+        auto it = parents_.find(parentId);
+        if (it == parents_.end())
+            return nullptr;
+        auto &p = *it->second;
+        if (p.sentSlices >= p.totalSlices)
+            return nullptr;
+        auto child = std::make_shared<ChildOrder>(p.children[p.sentSlices++]);
+        return child;
+    }
+
+    void EmsEngine::onChildFill(OrderId parentId, OrderId childId, Quantity qty, Price price)
+    {
+        auto it = parents_.find(parentId);
+        if (it == parents_.end())
+            return;
+        auto &p = *it->second;
+
+        // 更新子单
+        for (auto &c : p.children)
+        {
+            if (c.id == childId)
+            {
+                c.filledQty += qty;
+                c.state = (c.filledQty >= c.qty) ? OrderState::FILLED : OrderState::PARTIALLY_FILLED;
+                break;
+            }
+        }
+
+        // 更新父单（状态联动 + AvgPx）
+        p.filledQty += qty;
+        p.totalCost += qty * price;
+        p.state = (p.filledQty >= p.totalQty) ? OrderState::FILLED : OrderState::PARTIALLY_FILLED;
+    }
+
+    Quantity EmsEngine::cancelParent(OrderId parentId)
+    {
+        auto it = parents_.find(parentId);
+        if (it == parents_.end())
+            return 0;
+        auto &p = *it->second;
+
+        // 撤所有未完成子单
+        for (auto &c : p.children)
+        {
+            if (c.filledQty < c.qty)
+                c.state = OrderState::CANCELED;
+        }
+
+        p.state = OrderState::CANCELED;
+        return p.totalQty - p.filledQty; // 回收未成交量
+    }
+
+    std::shared_ptr<ParentOrder> EmsEngine::parent(OrderId id) const
+    {
+        auto it = parents_.find(id);
+        return it != parents_.end() ? it->second : nullptr;
+    }
+} // namespace ems```
+
+### `ems/src/main.cpp`
+
+```cpp
+#include "ems_engine.hpp"
+
+#include <iostream>
+
+using namespace std;
+using namespace ems;
+using namespace me;
+
+static const char *stateName(OrderState s)
+{
+    switch (s)
+    {
+    case OrderState::NEW:
+        return "NEW";
+    case OrderState::PARTIALLY_FILLED:
+        return "PARTIALLY_FILLED";
+    case OrderState::FILLED:
+        return "FILLED";
+    case OrderState::CANCELED:
+        return "CANCELED";
+    case OrderState::REJECTED:
+        return "REJECTED";
+    }
+    return "?";
+}
+
+int main()
+{
+    EmsEngine ems;
+
+    // 下 TWAP 父单：买 1000 股，拆 5 片
+    auto p = ems.createParent("user1", "600000.SH", Side::BUY, 1000, Algorithm::TWAP, 5);
+    cout << "父单#" << p->id << " TWAP 买 " << p->totalQty << " 股，" << p->totalSlices << " 片\n";
+
+    // 逐片执行（前 3 片，模拟成交）
+    struct Slice
+    {
+        Quantity qty;
+        Price price;
+    };
+    Slice fills[] = {{200, 1000}, {150, 1001}, {200, 1002}};
+
+    for (const auto &f : fills)
+    {
+        auto c = ems.nextSlice(p->id);
+        if (!c)
+            break;
+        ems.onChildFill(p->id, c->id, f.qty, f.price);
+        p = ems.parent(p->id);
+        cout << "  子单#" << c->id << " 成交 " << f.qty << "/" << c->qty
+             << " @ " << f.price
+             << " → 父单成交 " << p->filledQty << "/" << p->totalQty
+             << " 状态 " << stateName(p->state)
+             << " 均价 " << p->avgPx() << "\n";
+    }
+
+    // 撤父单，回收未成交量
+    Quantity unfilled = ems.cancelParent(p->id);
+    p = ems.parent(p->id);
+    cout << "撤父单 → 状态 " << stateName(p->state)
+         << "，回收未成交 " << unfilled << " 股\n";
+
+    // ============ VWAP 演示 ============
+    std::cout << "\n===== VWAP 演示 =====\n";
+    auto pv = ems.createParent("user1", "600000.SH", Side::BUY, 1000, Algorithm::VWAP, 5);
+    std::cout << "父单#" << pv->id << " VWAP 买 1000 股，切片:";
+    for (const auto &c : pv->children)
+        std::cout << " " << c.qty;
+    std::cout << "\n";
+
+    // 执行第 1 片（300 全成交）+ 第 2 片（150 部分成交 100）
+    auto c1 = ems.nextSlice(pv->id);
+    ems.onChildFill(pv->id, c1->id, 300, 1000);
+    auto c2 = ems.nextSlice(pv->id);
+    ems.onChildFill(pv->id, c2->id, 100, 1001);
+    pv = ems.parent(pv->id);
+    std::cout << "  执行 2 片后：父单成交 " << pv->filledQty << "/" << pv->totalQty
+              << " 均价 " << pv->avgPx() << "\n";
+
+    // 撤父单：级联撤所有未完成子单，回收未成交量
+    Quantity recycled = ems.cancelParent(pv->id);
+    pv = ems.parent(pv->id);
+    std::cout << "  撤父单 → 回收未成交 " << recycled << " 股\n";
+    for (const auto &c : pv->children)
+        std::cout << "    子单#" << c.id << " qty=" << c.qty
+                  << " 成交=" << c.filledQty << " 状态=" << stateName(c.state) << "\n";
+
+    return 0;
+}```
+
