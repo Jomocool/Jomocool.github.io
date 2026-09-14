@@ -188,6 +188,13 @@ const CONFIG = {
         publishedAt: '2026-08-31',
         categories: ['OMS', 'C++'],
       },
+      {
+	title: '优雅关停崩溃terminate的gbd排查',
+        description: '一次gdb排查问题的过程记录',
+        file: '优雅关停崩溃terminate的gdb排查.md',
+        publishedAt: '2026-09-14',
+        categories: ['C++', "gdb"],
+      },
     ],
   },
   googleAnalytics: {
