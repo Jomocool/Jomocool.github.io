@@ -86,6 +86,14 @@ const CONFIG = {
     username: '', // required for medium / dev; unused for local
     articles: [
       {
+        title: '一套可常驻的永续合约交易程序',
+        description:
+          '把均线缠绕规则做成常驻进程：信号只看已收盘 K 线，仓位按最大亏损反推，进程中断后能把保护单补回去。',
+        file: '永续合约常驻交易系统.md',
+        publishedAt: '2026-10-20',
+        categories: ['Python', '量化', '交易系统'],
+      },
+      {
         title: '第一阶段：概念入门 — 学习笔记',
         description:
           '从《交易系统：更新与跨越》出发，梳理 OMS 定义、分层架构与核心设计原则。',
