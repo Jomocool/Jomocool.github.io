@@ -121,6 +121,14 @@ export const getSanitizedConfig = (
         username: config?.blog?.username || '',
         source: config?.blog?.source || 'dev',
         limit: config?.blog?.limit || 5,
+        series:
+          config?.blog?.series
+            ?.filter((item) => item.id && item.title)
+            .map((item) => ({
+              id: item.id,
+              title: item.title,
+              description: item.description || '',
+            })) || [],
         articles:
           config?.blog?.articles
             ?.filter((item) => item.title && item.file)
@@ -131,6 +139,7 @@ export const getSanitizedConfig = (
               publishedAt: item.publishedAt || '',
               categories: item.categories || [],
               thumbnail: item.thumbnail || '',
+              series: item.series || '',
             })) || [],
         display:
           config?.blog?.source === 'local'
@@ -225,6 +234,23 @@ export const ga = {
 };
 
 export const ARTICLE_HASH_PREFIX = '#/article/';
+export const SERIES_HASH_PREFIX = '#/series/';
+
+export const getSeriesIdFromHash = (hash: string): string | null => {
+  if (!hash.startsWith(SERIES_HASH_PREFIX)) {
+    return null;
+  }
+
+  try {
+    return decodeURIComponent(hash.slice(SERIES_HASH_PREFIX.length));
+  } catch {
+    return null;
+  }
+};
+
+export const getSeriesHash = (seriesId: string): string => {
+  return `${SERIES_HASH_PREFIX}${encodeURIComponent(seriesId)}`;
+};
 
 export const getArticleFileFromHash = (hash: string): string | null => {
   if (!hash.startsWith(ARTICLE_HASH_PREFIX)) {

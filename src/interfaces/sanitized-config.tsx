@@ -116,6 +116,13 @@ export interface SanitizedLocalArticle {
   publishedAt: string;
   categories: Array<string>;
   thumbnail: string;
+  series: string;
+}
+
+export interface SanitizedArticleSeries {
+  id: string;
+  title: string;
+  description: string;
 }
 
 export interface SanitizedBlog {
@@ -123,6 +130,7 @@ export interface SanitizedBlog {
   source: string;
   username: string;
   limit: number;
+  series: Array<SanitizedArticleSeries>;
   articles: Array<SanitizedLocalArticle>;
 }
 

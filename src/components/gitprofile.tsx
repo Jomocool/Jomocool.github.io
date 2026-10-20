@@ -197,7 +197,9 @@ const GitProfile = ({ config }: { config: Config }) => {
         <ArticlePage
           article={selectedArticle}
           onBack={() => {
-            window.location.hash = '';
+            window.location.hash = selectedArticle.series
+              ? `#/series/${encodeURIComponent(selectedArticle.series)}`
+              : '';
           }}
         />
       ) : (

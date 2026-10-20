@@ -88,12 +88,30 @@ const CONFIG = {
   blog: {
     source: 'local', // medium | dev | local
     username: '', // required for medium / dev; unused for local
+    series: [
+      {
+        id: 'quant',
+        title: '量化实盘',
+        description: '永续合约常驻程序：信号、仓位和崩溃后的恢复',
+      },
+      {
+        id: 'oms',
+        title: '模拟柜台',
+        description: '从概念入门到端到端柜台的学习笔记',
+      },
+      {
+        id: 'debug',
+        title: '工程排查',
+        description: '线上问题的定位记录',
+      },
+    ],
     articles: [
       {
         title: '一套可常驻的永续合约交易程序',
         description:
           '把均线缠绕规则做成常驻进程：信号只看已收盘 K 线，仓位按最大亏损反推，进程中断后能把保护单补回去。',
         file: '永续合约常驻交易系统.md',
+        series: 'quant',
         publishedAt: '2026-10-20',
         categories: ['Python', '量化', '交易系统'],
       },
@@ -103,6 +121,7 @@ const CONFIG = {
           '从《交易系统：更新与跨越》出发，梳理 OMS 定义、分层架构与核心设计原则。',
         file: '01-概念入门-学习笔记.md',
         publishedAt: '2026-08-11',
+        series: 'oms',
         categories: ['OMS', '交易系统'],
       },
       {
@@ -111,6 +130,7 @@ const CONFIG = {
           '对照华泰通信框架、XSTEP 与 FIX，理解券商侧交易系统的接入与订单链路。',
         file: '02-架构理解-学习笔记.md',
         publishedAt: '2026-08-12',
+        series: 'oms',
         categories: ['OMS', '架构'],
       },
       {
@@ -118,6 +138,7 @@ const CONFIG = {
         description: '拆解交易所级撮合引擎与券商级交易平台，对照两种典型实现。',
         file: '03-代码实战-学习笔记.md',
         publishedAt: '2026-08-12',
+        series: 'oms',
         categories: ['OMS', '源码'],
       },
       {
@@ -126,6 +147,7 @@ const CONFIG = {
           '用 C++17 实现简化版 OMS：下单、风控、撮合、成交与持仓更新。',
         file: '04-自建设计-学习笔记.md',
         publishedAt: '2026-08-12',
+        series: 'oms',
         categories: ['OMS', 'C++'],
       },
       {
@@ -134,6 +156,7 @@ const CONFIG = {
           '从 OMS 扩展到网关、风控、撮合、行情与清算，规划可讲解的完整闭环。',
         file: '05-完整交易系统-路线图.md',
         publishedAt: '2026-08-14',
+        series: 'oms',
         categories: ['OMS', '路线图'],
       },
       {
@@ -141,6 +164,7 @@ const CONFIG = {
         description: '在 C++17 简化版 OMS 的基础上，设计撮合引擎的生产化方案。',
         file: '06-撮合引擎生产化-学习笔记.md',
         publishedAt: '2026-08-20',
+        series: 'oms',
         categories: ['OMS', 'C++'],
       },
       {
@@ -149,6 +173,7 @@ const CONFIG = {
           'C++17，Asio + protobuf，把阶段 5 的撮合引擎暴露为 TCP 服务',
         file: '07-网络层-学习笔记.md',
         publishedAt: '2026-08-21',
+        series: 'oms',
         categories: ['OMS', 'C++'],
       },
       {
@@ -156,6 +181,7 @@ const CONFIG = {
         description: 'C++17，手写 FIX 编解码 + 会话层 + 应用层网关',
         file: '08-交易网关-FIX-学习笔记.md',
         publishedAt: '2026-08-24',
+        series: 'oms',
         categories: ['OMS', 'C++'],
       },
       {
@@ -163,6 +189,7 @@ const CONFIG = {
         description: 'C++17，账户资金 + 柜台核心',
         file: '09-账户资金模块-学习笔记.md',
         publishedAt: '2026-08-25',
+        series: 'oms',
         categories: ['OMS', 'C++'],
       },
       {
@@ -170,6 +197,7 @@ const CONFIG = {
         description: 'C++17，librdkafka + 事件驱动微服务雏形',
         file: '10-分布式改造-学习笔记.md',
         publishedAt: '2026-08-25',
+        series: 'oms',
         categories: ['OMS', 'C++'],
       },
       {
@@ -177,6 +205,7 @@ const CONFIG = {
         description: 'C++17，可插拔风控规则引擎 + 三层风控',
         file: '11-风控系统深化-学习笔记.md',
         publishedAt: '2026-08-25',
+        series: 'oms',
         categories: ['OMS', 'C++'],
       },
       {
@@ -184,6 +213,7 @@ const CONFIG = {
         description: 'C++17，父子订单拆分 + TWAP/VWAP 算法',
         file: '12-EMS算法交易-学习笔记.md',
         publishedAt: '2026-08-31',
+        series: 'oms',
         categories: ['OMS', 'C++'],
       },
       {
@@ -191,6 +221,7 @@ const CONFIG = {
         description: 'C++17，对账 + K 线聚合 + 日终清算',
         file: '13-清算对账-学习笔记.md',
         publishedAt: '2026-08-31',
+        series: 'oms',
         categories: ['OMS', 'C++'],
       },
       {
@@ -198,12 +229,14 @@ const CONFIG = {
         description: 'C++17，柜台门面 + 模拟行情 + 可观测性',
         file: '14-端到端模拟柜台-学习笔记.md',
         publishedAt: '2026-08-31',
+        series: 'oms',
         categories: ['OMS', 'C++'],
       },
       {
 	title: '优雅关停崩溃terminate的gbd排查',
         description: '一次gdb排查问题的过程记录',
         file: '优雅关停崩溃terminate的gdb排查.md',
+        series: 'debug',
         publishedAt: '2026-09-14',
         categories: ['C++', "gdb"],
       },

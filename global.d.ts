@@ -292,9 +292,31 @@ interface LocalArticle {
   categories?: Array<string>;
 
   /**
+   * Series id. Articles with the same id share one directory.
+   */
+  series?: string;
+
+  /**
    * Optional thumbnail image url
    */
   thumbnail?: string;
+}
+
+interface ArticleSeries {
+  /**
+   * Id referenced by LocalArticle.series
+   */
+  id: string;
+
+  /**
+   * Directory name
+   */
+  title: string;
+
+  /**
+   * One line under the directory name
+   */
+  description?: string;
 }
 
 interface Blog {
@@ -302,6 +324,11 @@ interface Blog {
    * medium | dev | local
    */
   source?: string;
+
+  /**
+   * Directories for local articles
+   */
+  series?: Array<ArticleSeries>;
 
   /**
    * Username (medium / dev)
