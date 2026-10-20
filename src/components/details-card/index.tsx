@@ -346,7 +346,7 @@ const DetailsCard = ({ profile, loading, social, github }: Props) => {
               {social?.phone && (
                 <ListItem
                   icon={<RiPhoneFill />}
-                  title="Phone:"
+                  title="电话"
                   value={social.phone}
                   link={`tel:${social.phone}`}
                 />
@@ -354,7 +354,7 @@ const DetailsCard = ({ profile, loading, social, github }: Props) => {
               {social?.email && (
                 <ListItem
                   icon={<RiMailFill />}
-                  title="Email:"
+                  title="邮箱"
                   value={social.email}
                   link={`mailto:${social.email}`}
                 />

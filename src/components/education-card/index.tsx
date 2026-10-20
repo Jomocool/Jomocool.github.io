@@ -60,7 +60,7 @@ const EducationCard = ({
             {loading ? (
               skeleton({ widthCls: 'w-32', heightCls: 'h-8' })
             ) : (
-              <span className="text-base-content opacity-70">Education</span>
+              <span className="text-base-content opacity-70">教育经历</span>
             )}
           </h5>
         </div>

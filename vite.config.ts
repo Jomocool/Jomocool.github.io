@@ -37,9 +37,9 @@ export default defineConfig({
             },
             includeAssets: ['logo.png'],
             manifest: {
-              name: 'Portfolio',
-              short_name: 'Portfolio',
-              description: 'Personal Portfolio',
+              name: 'Jomo',
+              short_name: 'Jomo',
+              description: '交易系统与 C++ 相关的个人主页',
               icons: [
                 {
                   src: 'logo.png',

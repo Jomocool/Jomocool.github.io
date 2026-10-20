@@ -213,12 +213,12 @@ const BlogCard = ({
                 <h3 className="text-base sm:text-lg font-bold text-base-content truncate">
                   {loading
                     ? skeleton({ widthCls: 'w-28', heightCls: 'h-8' })
-                    : 'My Articles'}
+                    : '文章'}
                 </h3>
                 <div className="text-base-content/60 text-xs sm:text-sm mt-1 truncate">
                   {loading
                     ? skeleton({ widthCls: 'w-32', heightCls: 'h-4' })
-                    : 'Recent posts'}
+                    : '技术笔记'}
                 </div>
               </div>
             </div>

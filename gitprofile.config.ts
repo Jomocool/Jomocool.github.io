@@ -34,7 +34,11 @@ const CONFIG = {
       projects: [],
     },
   },
-  seo: { title: 'Portfolio of Ariful Alam', description: '', imageURL: '' },
+  seo: {
+    title: 'Jomo',
+    description: '交易系统与 C++ 相关的个人主页',
+    imageURL: '',
+  },
   social: {
     phone: '13530228968',
     email: '13530228968@163.com',
